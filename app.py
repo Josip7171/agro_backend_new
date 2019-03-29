@@ -3,7 +3,7 @@ from flask_restful import Api
 from flask_jwt import JWT
 
 from security import authenticate, identity
-from user2 import UserRegister
+from user import UserRegister
 from notes import Note, SingleNote
 
 
