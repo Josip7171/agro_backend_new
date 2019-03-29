@@ -3,7 +3,6 @@ from flask_restful import Resource, reqparse
 from flask_jwt import jwt_required
 
 
-# dio koda za spajanje na mysql bazu podataka
 mysql_config = {
     'user': 'root',
     'password': 'sifra321',
@@ -34,7 +33,7 @@ class Note(Resource):
         return {'message': 'Note not found.'}
 
     @classmethod
-    def find_by_userid(cls, user_id):
+    def find_by_userid(cls, user_id):       # ova metoda nađe SVE bilješke iz tablice "notes"
         connection = mysql.connector.connect(**mysql_config)
         cursor = connection.cursor()
 
@@ -51,7 +50,6 @@ class Note(Resource):
 
         connection.commit()
         connection.close()
-
         return {'notes': notes}
 
     # @jwt_required()
@@ -81,12 +79,87 @@ class Note(Resource):
         connection.commit()
         connection.close()
 
-    def delete(self, user_id):
+
+class SingleNote(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument(
+        'user_id',
+        type=int,
+        required=True,
+        help="This field cannot be left blank!"
+    )
+    parser.add_argument(
+        'content',
+        type=str,
+        required=True,
+        help="This field cannot be left blank!"
+    )
+
+    def get(self, id):
+        try:
+            note = self.find_by_id(id)
+        except:
+            return {'message': 'Note not found.'}, 500
+        if note:
+            return note
+        return {'message': 'Note not found.'}, 404
+
+    def find_by_id(cls, id):
+        connection = mysql.connector.connect(**mysql_config)
+        cursor = connection.cursor()
+
+        query = "SELECT * FROM notes WHERE id=%s"
+        result = cursor.execute(query, (id,))
+        row = cursor.fetchone()
+
+        connection.close()
+        if row:
+            return {
+                'note': {
+                    'id': id,
+                    'user_id': row[1],
+                    'content': row[2]
+                }
+            }
+
+    def delete(self, id):
         connection = mysql.connector.connect(**mysql_config)
         cursor = connection.cursor()
 
         query = "DELETE FROM notes WHERE id=%s"
-        result = cursor.execute(query, (1,))    # ovo treba prepraviti...
+        result = cursor.execute(query, (id,))
+
+        connection.commit()
+        connection.close()
+        return {'message': 'Note successfully deleted.'}
+
+    def put(self, id):
+        data = SingleNote.parser.parse_args()
+
+        note = self.find_by_id(id)
+        updated_note = {
+            'id': id,
+            'user_id': data['user_id'],
+            'content': data['content']
+        }
+
+        try:
+            self.update(updated_note)
+            return updated_note
+        except:
+            return {'message': 'An error occured updating the note.'}, 500
+
+    @classmethod
+    def update(cls, note):
+        connection = mysql.connector.connect(**mysql_config)
+        cursor = connection.cursor()
+
+        query = "UPDATE notes SET content=%s WHERE id=%s"
+        result = cursor.execute(query, (note['content'], note['id']))
+
+        connection.commit()
+        connection.close()
+
 
 
 

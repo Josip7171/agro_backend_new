@@ -4,7 +4,7 @@ from flask_jwt import JWT
 
 from security import authenticate, identity
 from user2 import UserRegister
-from notes import Note
+from notes import Note, SingleNote
 
 
 app = Flask(__name__)
@@ -20,6 +20,7 @@ def hello_world():
 
 api.add_resource(UserRegister, '/register')     # stvori endpoint -> /register
 api.add_resource(Note, '/notes/<int:user_id>')
+api.add_resource(SingleNote, '/note/<int:id>')
 
 
 if __name__ == '__main__':
