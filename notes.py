@@ -22,49 +22,12 @@ class Note(Resource):
     )
 
     @jwt_required()
-    def get(self, user_id):
+    def post(self, id):
         curr_user_id = getattr(current_identity, 'id')
-        if user_id != curr_user_id:
-            return {'message': 'You are not authorized to do that.'}
-
-        try:
-            notes = self.find_by_userid(user_id)
-        except:
-            return {'message': 'User not found.'}
-
-        if notes:
-            return notes
-        return {'message': 'Notes not found.'}
-
-    @classmethod
-    def find_by_userid(cls, user_id):       # ova metoda nađe SVE bilješke iz tablice "notes"
-        connection = mysql.connector.connect(**mysql_config)
-        cursor = connection.cursor()
-
-        query = "SELECT * FROM notes WHERE user_id=%s"
-        result = cursor.execute(query, (user_id,))
-
-        notes = []
-        for row in cursor:
-            notes.append({
-                'id': row[0],
-                'user_id': row[1],
-                'content': row[2]
-            })
-
-        connection.commit()
-        connection.close()
-        return {'notes': notes}
-
-    @jwt_required()
-    def post(self, user_id):
-        curr_user_id = getattr(current_identity, 'id')
-        if user_id != curr_user_id:
-            return {'message': 'You are not authorized to do that.'}
 
         data = Note.parser.parse_args()
         note = {
-            'user_id': user_id,
+            'user_id': curr_user_id,
             'content': data['content']
         }
 
@@ -85,16 +48,6 @@ class Note(Resource):
 
         connection.commit()
         connection.close()
-
-
-class SingleNote(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument(
-        'content',
-        type=str,
-        required=True,
-        help="This field cannot be left blank!"
-    )
 
     @jwt_required()
     def get(self, id):
@@ -162,7 +115,7 @@ class SingleNote(Resource):
         if user_id[0] != curr_user_id:
             return {'message': 'You are not authorized to do that.'}
 
-        data = SingleNote.parser.parse_args()
+        data = Note.parser.parse_args()
 
         updated_note = {
             'id': id,
@@ -185,6 +138,44 @@ class SingleNote(Resource):
 
         connection.commit()
         connection.close()
+
+
+class Notes(Resource):
+    @jwt_required()
+    def get(self, user_id):
+        curr_user_id = getattr(current_identity, 'id')
+        if user_id != curr_user_id:
+            return {'message': 'You are not authorized to do that.'}
+
+        try:
+            notes = self.find_by_userid(user_id)
+        except:
+            return {'message': 'User not found.'}
+
+        if notes:
+            return notes
+        return {'message': 'Notes not found.'}
+
+    @classmethod
+    def find_by_userid(cls, user_id):
+        connection = mysql.connector.connect(**mysql_config)
+        cursor = connection.cursor()
+
+        query = "SELECT * FROM notes WHERE user_id=%s"
+        result = cursor.execute(query, (user_id,))
+
+        notes = []
+        for row in cursor:
+            notes.append({
+                'id': row[0],
+                'user_id': row[1],
+                'content': row[2]
+            })
+
+        connection.close()
+        return {'notes': notes}
+
+
 
 
 

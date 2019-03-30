@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from security import authenticate, identity
 from user import UserRegister
-from notes import Note, SingleNote
+from notes import Note, Notes
 
 
 app = Flask(__name__)
@@ -26,13 +26,13 @@ def hello_world():
 @jwt_required()
 def protected():
     x = getattr(current_identity, 'id')     # x postaje ID usera čiji je token prosljeđen u auth header
-    print("ja printam : {}".format(x))
+    print("ja printam: {}".format(x))
     return '%s' % current_identity
 
 
 api.add_resource(UserRegister, '/register')     # stvori endpoint -> /register
-api.add_resource(Note, '/notes/<int:user_id>')
-api.add_resource(SingleNote, '/note/<int:id>')
+api.add_resource(Notes, '/notes/<int:user_id>')
+api.add_resource(Note, '/note/<int:id>')
 
 
 if __name__ == '__main__':
