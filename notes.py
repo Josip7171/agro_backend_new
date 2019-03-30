@@ -1,6 +1,6 @@
 import mysql.connector
 from flask_restful import Resource, reqparse
-from flask_jwt import jwt_required
+from flask_jwt import jwt_required, current_identity
 
 
 mysql_config = {
@@ -23,14 +23,18 @@ class Note(Resource):
 
     @jwt_required()
     def get(self, user_id):
+        curr_user_id = getattr(current_identity, 'id')
+        if user_id != curr_user_id:
+            return {'message': 'You are not authorized to do that.'}
+
         try:
-            note = self.find_by_userid(user_id)
+            notes = self.find_by_userid(user_id)
         except:
             return {'message': 'User not found.'}
 
-        if note:
-            return note
-        return {'message': 'Note not found.'}
+        if notes:
+            return notes
+        return {'message': 'Notes not found.'}
 
     @classmethod
     def find_by_userid(cls, user_id):       # ova metoda nađe SVE bilješke iz tablice "notes"
@@ -52,10 +56,13 @@ class Note(Resource):
         connection.close()
         return {'notes': notes}
 
-    # @jwt_required()
+    @jwt_required()
     def post(self, user_id):
-        data = Note.parser.parse_args()
+        curr_user_id = getattr(current_identity, 'id')
+        if user_id != curr_user_id:
+            return {'message': 'You are not authorized to do that.'}
 
+        data = Note.parser.parse_args()
         note = {
             'user_id': user_id,
             'content': data['content']
@@ -83,23 +90,23 @@ class Note(Resource):
 class SingleNote(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument(
-        'user_id',
-        type=int,
-        required=True,
-        help="This field cannot be left blank!"
-    )
-    parser.add_argument(
         'content',
         type=str,
         required=True,
         help="This field cannot be left blank!"
     )
 
+    @jwt_required()
     def get(self, id):
         try:
             note = self.find_by_id(id)
         except:
             return {'message': 'Note not found.'}, 500
+
+        curr_user_id = getattr(current_identity, 'id')
+        if note['note']['user_id'] != curr_user_id:
+            return {'message': 'You are not authorized to do that.'}
+
         if note:
             return note
         return {'message': 'Note not found.'}, 404
@@ -122,9 +129,18 @@ class SingleNote(Resource):
                 }
             }
 
+    @jwt_required()
     def delete(self, id):
         connection = mysql.connector.connect(**mysql_config)
         cursor = connection.cursor()
+
+        query = "SELECT user_id FROM notes WHERE id=%s"
+        result = cursor.execute(query, (id,))
+        user_id = cursor.fetchone()
+
+        curr_user_id = getattr(current_identity, 'id')
+        if user_id[0] != curr_user_id:
+            return {'message': 'You are not authorized to do that.'}
 
         query = "DELETE FROM notes WHERE id=%s"
         result = cursor.execute(query, (id,))
@@ -133,13 +149,23 @@ class SingleNote(Resource):
         connection.close()
         return {'message': 'Note successfully deleted.'}
 
+    @jwt_required()
     def put(self, id):
+        connection = mysql.connector.connect(**mysql_config)
+        cursor = connection.cursor()
+
+        query = "SELECT user_id FROM notes WHERE id=%s"
+        result = cursor.execute(query, (id,))
+        user_id = cursor.fetchone()
+
+        curr_user_id = getattr(current_identity, 'id')
+        if user_id[0] != curr_user_id:
+            return {'message': 'You are not authorized to do that.'}
+
         data = SingleNote.parser.parse_args()
 
-        note = self.find_by_id(id)
         updated_note = {
             'id': id,
-            'user_id': data['user_id'],
             'content': data['content']
         }
 

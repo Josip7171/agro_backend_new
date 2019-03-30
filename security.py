@@ -9,5 +9,6 @@ def authenticate(username, password):
 
 
 def identity(payload):
+    print("payload: ",payload)
     user_id = payload['identity']
     return User.find_by_id(user_id)
