@@ -22,7 +22,7 @@ class Note(Resource):
     )
 
     @jwt_required()
-    def post(self, id):
+    def post(self, id):     # id parametar nuzan (?) ali beskoristan, koristiti bilo koju int vrijednost
         curr_user_id = getattr(current_identity, 'id')
 
         data = Note.parser.parse_args()

@@ -91,6 +91,7 @@ class UserRegister(Resource):
 
         query = "INSERT INTO users VALUES (NULL, %s, %s, %s, %s)"
         cursor.execute(query, (data['username'], data['email'], data['password'], data['role']))
+        # ova mogucnost unosa role je podlozna hakiranju, treba rijesiti na drugačiji način
 
         connection.commit()
         connection.close()

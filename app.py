@@ -6,6 +6,7 @@ from datetime import timedelta
 from security import authenticate, identity
 from user import UserRegister
 from notes import Note, Notes
+from weather import Weather
 
 
 app = Flask(__name__)
@@ -33,6 +34,7 @@ def protected():
 api.add_resource(UserRegister, '/register')     # stvori endpoint -> /register
 api.add_resource(Notes, '/notes/<int:user_id>')
 api.add_resource(Note, '/note/<int:id>')
+api.add_resource(Weather, '/weather/<string:city_name>')
 
 
 if __name__ == '__main__':
