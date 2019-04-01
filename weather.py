@@ -33,3 +33,5 @@ class Weather(Resource):
 
         return dataa
 
+    # daljnji algoritmi za sjetveni kalendar ovdje ili posebni file?
+

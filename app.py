@@ -7,6 +7,7 @@ from security import authenticate, identity
 from user import UserRegister
 from notes import Note, Notes
 from weather import Weather
+from crop import Crops, Crop, CropData, CropEco, CropCult
 
 
 app = Flask(__name__)
@@ -14,7 +15,7 @@ app.secret_key = 'agro'
 app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=3600)
 # app.config['JWT_AUTH_USERNAME_KEY'] = 'email'
 api = Api(app)
-jwt = JWT(app, authenticate, identity)          # stvori endpoint -> /auth
+jwt = JWT(app, authenticate, identity)          # stvara endpoint -> /auth
 
 
 @app.route('/')
@@ -31,10 +32,15 @@ def protected():
     return '%s' % current_identity
 
 
-api.add_resource(UserRegister, '/register')     # stvori endpoint -> /register
-api.add_resource(Notes, '/notes/<int:user_id>')
-api.add_resource(Note, '/note/<int:id>')
-api.add_resource(Weather, '/weather/<string:city_name>')
+api.add_resource(UserRegister, '/register')                     # stvara endpoint -> /register
+api.add_resource(Notes, '/notes/<int:user_id>')                 # all notes from logged user
+api.add_resource(Note, '/note/<int:id>')                        # specific note, supports get,post,put,del
+api.add_resource(Weather, '/weather/<string:city_name>')        # trimmed info about weather from foreign API
+api.add_resource(Crops, '/crops')                               # all crops
+api.add_resource(Crop, '/crop/<string:crop_name>')              # crop basic info
+api.add_resource(CropData, '/cropdata/<string:crop_name>')      # crop datasheet
+api.add_resource(CropEco, '/cropeco/<string:crop_name>')        # crop ecology data
+api.add_resource(CropCult, '/cropcult/<string:crop_name>')      # crop cultivation data
 
 
 if __name__ == '__main__':
