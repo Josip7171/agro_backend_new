@@ -29,7 +29,6 @@ class Weather(Resource):
                 value.pop('tstorm', None)
                 value.pop('tstormpct', None)
                 value.pop('wdir', None)
-                value.pop('wspd', None)
 
         return dataa
 

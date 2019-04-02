@@ -8,6 +8,8 @@ from user import UserRegister
 from notes import Note, Notes
 from weather import Weather
 from crop import Crops, Crop, CropData, CropEco, CropCult
+from action_calendar import ActionCal, CropAction
+from algorithms import MedianValues
 
 
 app = Flask(__name__)
@@ -27,7 +29,7 @@ def hello_world():
 @app.route('/protected')
 @jwt_required()
 def protected():
-    x = getattr(current_identity, 'id')     # x postaje ID usera čiji je token prosljeđen u auth header
+    x = getattr(current_identity, 'id')     # 'x' postaje ID usera čiji je token prosljeđen u auth header
     print("ja printam: {}".format(x))
     return '%s' % current_identity
 
@@ -41,6 +43,10 @@ api.add_resource(Crop, '/crop/<string:crop_name>')              # crop basic inf
 api.add_resource(CropData, '/cropdata/<string:crop_name>')      # crop datasheet
 api.add_resource(CropEco, '/cropeco/<string:crop_name>')        # crop ecology data
 api.add_resource(CropCult, '/cropcult/<string:crop_name>')      # crop cultivation data
+api.add_resource(ActionCal, '/actioncalendar')                  # all data from action calendar
+api.add_resource(CropAction, '/actioncalendar/<string:crop_name>')              # specific data from action cal
+api.add_resource(MedianValues, '/alg/<string:city_name>/<string:crop_name>')    # "how good is to plant specific
+# plant in a specific city this week
 
 
 if __name__ == '__main__':
